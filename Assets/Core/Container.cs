@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace HeavenInject { 
     public enum Lifetime {
@@ -17,7 +18,8 @@ namespace HeavenInject {
     public interface IContainerBuilder {
         // Register Methods
         void RegisterEntryPoint<T>();
-        void Register<TA, TB>(Lifetime lifetime);
+        void Register<TA, TB>(Lifetime lifeTime);
+        void RegisterObjectInScene<TA, TB>(Lifetime lifeTime);
         
         // Resolve Methods
         void ResolveEntryPoints();
@@ -27,22 +29,36 @@ namespace HeavenInject {
     }
 
     public class ContainerBuilder : IContainerBuilder {
-        private Dictionary<Type, ImplType> _implementationTypes = new Dictionary<Type, ImplType>();
+        private Dictionary<Type, ImplType> _registeredImpls = new Dictionary<Type, ImplType>();
         
-        private Dictionary<Type, object> _singletons = new Dictionary<Type, object>();
-        private Dictionary<Type, object> _scoped = new Dictionary<Type, object>();
+        private Dictionary<Type, object> _singletonObjects = new Dictionary<Type, object>();
+        private Dictionary<Type, object> _scopedObjects = new Dictionary<Type, object>();
         
         private List<Type> _entryPoints = new List<Type>();
         
+        // if (info.Implementation.GetCustomAttributes(typeof(Inject),false).Length > 0) {
+        //    foreach (MemberInfo mi in info.Implementation.GetMembers(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static)) {
+        //        if (mi.MemberType == MemberTypes.Method) {
+        //            foreach (ParameterInfo pi in ((MethodInfo) mi).GetParameters()) {
+        //                Debug.Log(pi.ParameterType);
+        //            }
+        //        }
+        //    }
+        // }
+        
         private object Resolve(Type type) {
             // If an object of type is already registered as a Singleton, just hand the same Instance back
-            if (_implementationTypes.TryGetValue(type, out var info)) {
+            if (_registeredImpls.TryGetValue(type, out var info)) {
                 switch (info.LifeTime) {
                     default:
                         return null;
                     
                     case Lifetime.Singleton:
-                        if (_singletons.TryGetValue(type, out var singleton)) return singleton;
+                        if (_singletonObjects.TryGetValue(type, out var singletonObject)) return singletonObject;
+                        break;
+                    
+                    case Lifetime.Scoped:
+                        if (_scopedObjects.TryGetValue(type, out var scopedObject)) return scopedObject;
                         break;
                 }
                 
@@ -67,11 +83,11 @@ namespace HeavenInject {
                         return null;
                     
                     case Lifetime.Singleton:
-                        _singletons.Add(type, instance);
+                        _singletonObjects.Add(type, instance);
                         break;
                         
                     case Lifetime.Scoped:
-                        _scoped.Add(type, instance);
+                        _scopedObjects.Add(type, instance);
                         break;
                 }
                 
@@ -104,20 +120,31 @@ namespace HeavenInject {
             _entryPoints.Add(typeof(T));
         }
         
-        public void Register<TA, TB>(Lifetime lifetime) {
+        public void Register<TA, TB>(Lifetime lifeTime) {
             ImplType implType = new ImplType {
                 Implementation = typeof(TB),
-                LifeTime = lifetime
+                LifeTime = lifeTime,
             };
             
-            _implementationTypes.Add(typeof(TA), implType);
+            _registeredImpls.Add(typeof(TA), implType);
 
-            Debug.unityLogger.Log(LogType.Log, $"Registered interface: {typeof(TA)} with class: {typeof(TB)} - and a lifetime of: {lifetime}");
+            Debug.unityLogger.Log(LogType.Log, $"Registered Interface: {typeof(TA)} with Class: {typeof(TB)} - and a lifetime of: {lifeTime}");
+        }
+
+        public void RegisterObjectInScene<TA, TB>(Lifetime lifeTime) {
+            ImplType implType = new ImplType {
+                Implementation = typeof(TB),
+                LifeTime = lifeTime,
+            };
+            
+            _registeredImpls.Add(typeof(TA), implType);
+
+            Debug.unityLogger.Log(LogType.Log, $"Registered Interface: {typeof(TA)} with MonoBehaviour: {typeof(TB)} - and a LifeTime of: {lifeTime}");
         }
 
         public void DiscardScopedObjects() {
-            _scoped.Clear();
-            Debug.unityLogger.Log(LogType.Log, $"Discarded all scoped objects");
+            _scopedObjects.Clear();
+            Debug.unityLogger.Log(LogType.Log, $"Discarded all scoped objects from scene: {SceneManager.GetActiveScene().name}");
         }
     }
 }

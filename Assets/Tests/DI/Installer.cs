@@ -7,5 +7,7 @@ public class Installer : LifetimeScope {
         
         builder.Register<ISceneLoader, SceneLoader>(Lifetime.Singleton);
         builder.Register<ITest, Errmmm>(Lifetime.Scoped);
+        
+        builder.Register<IMonoTest, MonoTest>(Lifetime.Scoped);
     }
 }
