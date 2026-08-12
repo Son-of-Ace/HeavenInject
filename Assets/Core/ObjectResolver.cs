@@ -4,7 +4,7 @@ using System.Reflection;
 
 // INJECT ATTRIBUTE HANDLING CODE
 // if (info.Implementation.GetCustomAttributes(typeof(Inject),false).Length > 0) {
-//    foreach (MemberInfo mi in info.Implementation.GetMembers(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static)) {
+//    foreach (MemberInfo mi in info.Implementation.GetMembers(BindingFlags.NonPublic)) {
 //        if (mi.MemberType == MemberTypes.Method) {
 //            foreach (ParameterInfo pi in ((MethodInfo) mi).GetParameters()) {
 //                Debug.Log(pi.ParameterType);
