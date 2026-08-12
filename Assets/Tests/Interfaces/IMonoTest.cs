@@ -1,5 +1,3 @@
-﻿namespace Tests.Interfaces {
-    public interface IMonoTest {
+﻿public interface IMonoTest {
         
-    }
 }
