@@ -22,7 +22,7 @@ namespace HeavenInject {
     }
     
     public class ObjectResolver : IObjectResolver {
-        private Dictionary<Type, ImplementationType> _registeredImpls;
+        private Dictionary<Type, ImplementationType> _implementations;
         private List<Type> _resolutionPath = new();
         
         // Cached Objects
@@ -30,8 +30,8 @@ namespace HeavenInject {
         private Dictionary<Type, object> _scopedCache = new();
 
         // Constructor
-        public ObjectResolver(Dictionary<Type, ImplementationType> registeredImpls) {
-            _registeredImpls = registeredImpls;
+        public ObjectResolver(Dictionary<Type, ImplementationType> implementations) {
+            _implementations = implementations;
         }
         
         // Internal API
@@ -52,7 +52,7 @@ namespace HeavenInject {
         }
 
         private object Resolve(Type type) {
-            if (!_registeredImpls.TryGetValue(type, out ImplementationType implType))
+            if (!_implementations.TryGetValue(type, out ImplementationType implType))
                 throw new Exception($"Type {type} is not registered!");
 
             if (_resolutionPath.Contains(type)) {
@@ -97,7 +97,7 @@ namespace HeavenInject {
             return ConstructInstance(entryPoint);
         }
         
-        public object ResolveAttribute(Type attribType) {
+        public object ResolveAttribute(Type classType) {
             return null;
         }
 

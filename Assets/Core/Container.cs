@@ -27,13 +27,11 @@ namespace HeavenInject {
         private IObjectResolver _objectResolver;
         
         // Registered Objects
-        private Dictionary<Type, ImplementationType> _registeredImpls = new();
-        
-        // Single Lists
+        private Dictionary<Type, ImplementationType> _implementations = new();
         private List<Type> _entryPoints = new();
 
         public void Build() {
-            _objectResolver = new ObjectResolver(_registeredImpls);
+            _objectResolver = new ObjectResolver(_implementations);
         }
 
         // Initialization Methods
@@ -54,7 +52,7 @@ namespace HeavenInject {
                 LifeTime = lifeTime,
             };
             
-            _registeredImpls.Add(typeof(TA), implType);
+            _implementations.Add(typeof(TA), implType);
 
             Debug.unityLogger.Log(LogType.Log, $"Registered Interface: {typeof(TA)} with Class: {typeof(TB)} - and a lifetime of: {lifeTime}");
         }
@@ -65,7 +63,7 @@ namespace HeavenInject {
                 LifeTime = lifeTime,
             };
             
-            _registeredImpls.Add(typeof(TA), implType);
+            _implementations.Add(typeof(TA), implType);
 
             Debug.unityLogger.Log(LogType.Log, $"Registered Interface: {typeof(TA)} with MonoBehaviour: {typeof(TB)} - and a LifeTime of: {lifeTime}");
         }
