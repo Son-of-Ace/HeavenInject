@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace HeavenInject { 
     public enum LifeTime {
@@ -12,13 +13,11 @@ namespace HeavenInject {
         void Build();
         
         // Register Methods
-        void RegisterEntryPoint<T>();
-        void Register<TA, TB>(LifeTime lifeTime);
-        void RegisterObjectInScene<TA, TB>(LifeTime lifeTime);
-        
-        // Initialize Methods
-        void InitializeEntryPoints();
-        
+        void RegisterEntryPoint<T>() where T : class;
+        void Register<TA, TB>(LifeTime lifeTime) where TB : class;
+        void RegisterSceneObject<T>() where T : class;
+        void RegisterComponentOnNewGameObject<T>(string objectName = "HeavenInjectDefaultObject") where T : Component;
+
         // Discard Methods
         void OnScopeDied();
     }
@@ -28,44 +27,91 @@ namespace HeavenInject {
         
         // Registered Objects
         private Dictionary<Type, ImplementationType> _implementations = new();
-        private List<Type> _entryPoints = new();
 
         public void Build() {
             _objectResolver = new ObjectResolver(_implementations);
+            
+            ResolveRegistries();
         }
 
         // Initialization Methods
-        public void InitializeEntryPoints() {
-            foreach (var entryPoint in _entryPoints) {
-                _objectResolver.ResolveEntryPoint(entryPoint);
+        private void ResolveRegistries() {
+            foreach (var impl in _implementations) {
+                _objectResolver.Resolve(impl.Value);
             }
         }
 
         // Registration Methods
-        public void RegisterEntryPoint<T>() {
-            _entryPoints.Add(typeof(T));
+        /// <summary>
+        /// Takes a Class implementation type and registers it in the Container
+        /// </summary>
+        public void RegisterEntryPoint<T>() where T : class {
+            ImplementationType implType = new ImplementationType {
+                Implementation = typeof(T),
+                LifeTime = LifeTime.Singleton,
+                SceneObject = null,
+            };
+            
+            _implementations.Add(typeof(T), implType);
+
+            Debug.unityLogger.Log(LogType.Log, $"Registered EntryPoint: {typeof(T)}");
         }
         
-        public void Register<TA, TB>(LifeTime lifeTime) {
+        /// <summary>
+        /// Takes an Interface and a Class implementation and registers them in a Dictionary for quick lookup
+        /// </summary>
+        public void Register<TA, TB>(LifeTime lifeTime) where TB : class {
             ImplementationType implType = new ImplementationType {
                 Implementation = typeof(TB),
                 LifeTime = lifeTime,
+                SceneObject = null,
             };
             
             _implementations.Add(typeof(TA), implType);
 
             Debug.unityLogger.Log(LogType.Log, $"Registered Interface: {typeof(TA)} with Class: {typeof(TB)} - and a lifetime of: {lifeTime}");
         }
+        
+        /// <summary>
+        /// Takes an Implementation and finds the first object anywhere in the Scene that has a component
+        /// with the respected Implementation type on it.
+        /// </summary>
+        public void RegisterSceneObject<T>() where T : class {
+            GameObject[] gameObjects = Object.FindObjectsByType<GameObject>();
 
-        public void RegisterObjectInScene<TA, TB>(LifeTime lifeTime) {
-            ImplementationType implType = new ImplementationType {
-                Implementation = typeof(TB),
-                LifeTime = lifeTime,
-            };
+            foreach (GameObject gameObject in gameObjects) {
+                Component found = gameObject.GetComponent(typeof(T));
+                
+                if (found) {
+                    ImplementationType implType = new ImplementationType {
+                        Implementation = typeof(T),
+                        LifeTime = LifeTime.Scoped,
+                        SceneObject = found,
+                    };
+                    
+                    _implementations.Add(typeof(T), implType);
+                    break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Takes an Implementation and creates a new GameObject in the scene with that a component of Implementation on it
+        /// </summary>
+        public void RegisterComponentOnNewGameObject<T>(string objectName = "HeavenInjectDefaultObject") where T : Component {
+            GameObject newObject = new GameObject(objectName);
             
-            _implementations.Add(typeof(TA), implType);
+            if (newObject) {
+                Component objectComponent = newObject.AddComponent<T>();
 
-            Debug.unityLogger.Log(LogType.Log, $"Registered Interface: {typeof(TA)} with MonoBehaviour: {typeof(TB)} - and a LifeTime of: {lifeTime}");
+                ImplementationType implType = new ImplementationType {
+                    Implementation = typeof(T),
+                    LifeTime = LifeTime.Scoped,
+                    SceneObject = objectComponent,
+                };
+                
+                _implementations.Add(typeof(T), implType);
+            }
         }
 
         // Discard Handling

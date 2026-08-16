@@ -8,7 +8,6 @@ namespace HeavenInject {
             _builder = new ContainerBuilder();
             Bind(_builder);
             _builder.Build();
-            _builder.InitializeEntryPoints();
         }
 
         private void OnDisable() {
