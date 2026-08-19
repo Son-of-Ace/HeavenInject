@@ -17,6 +17,7 @@ namespace HeavenInject {
         void Register<TA, TB>(LifeTime lifeTime) where TB : class;
         void RegisterSceneObject<T>() where T : Component;
         void RegisterComponentOnNewGameObject<T>(string objectName = "HeavenInjectDefaultObject") where T : Component;
+        void AutoRegister(List<GameObject> gameObjects, LifeTime lt);
 
         // Discard Methods
         void OnScopeDied();
@@ -34,13 +35,35 @@ namespace HeavenInject {
             Initialize();
         }
 
+        // Private Implementation
         // Initialization Methods
         private void Initialize() {
             foreach (var impl in _implementations) {
                 _objectResolver.Resolve(impl.Value);
             }
         }
+        
+        /// <summary>
+        /// Takes a GameObject and finds the Inject parameter.
+        /// </summary>
+        private void HandleSceneObject<T>(GameObject obj, LifeTime lt) {
+            Component found = obj.GetComponent(typeof(T));
+                
+            if (found) {
+                ImplementationType implType = new ImplementationType {
+                    Implementation = typeof(T),
+                    LifeTime = lt,
+                    SceneObject = found,
+                };
+                    
+                _implementations.Add(typeof(T), implType);
+            }
+            else {
+                Console.WriteLine($"Object {obj.name} was not found in Scene!");
+            }
+        }
 
+        // Public Implementation
         // Registration Methods
         /// <summary>
         /// Takes a Class implementation type and registers it in the Container
@@ -80,18 +103,7 @@ namespace HeavenInject {
             GameObject[] gameObjects = Object.FindObjectsByType<GameObject>();
 
             foreach (GameObject gameObject in gameObjects) {
-                Component found = gameObject.GetComponent(typeof(T));
-                
-                if (found) {
-                    ImplementationType implType = new ImplementationType {
-                        Implementation = typeof(T),
-                        LifeTime = LifeTime.Scoped,
-                        SceneObject = found,
-                    };
-                    
-                    _implementations.Add(typeof(T), implType);
-                    break;
-                }
+                HandleSceneObject<T>(gameObject, LifeTime.Scoped);
             }
         }
 
@@ -100,17 +112,17 @@ namespace HeavenInject {
         /// </summary>
         public void RegisterComponentOnNewGameObject<T>(string objectName = "HeavenInjectDefaultName") where T : Component {
             GameObject newObject = new GameObject(objectName);
-            
-            if (newObject) {
-                Component objectComponent = newObject.AddComponent<T>();
+            HandleSceneObject<T>(newObject, LifeTime.Scoped);
+        }
 
-                ImplementationType implType = new ImplementationType {
-                    Implementation = typeof(T),
-                    LifeTime = LifeTime.Scoped,
-                    SceneObject = objectComponent,
-                };
-                
-                _implementations.Add(typeof(T), implType);
+        /// <summary>
+        /// Automatically registers scene objects sent by LifetimeScope.
+        /// </summary>
+        public void AutoRegister(List<GameObject> gameObjects, LifeTime lt) {
+            foreach (GameObject gameObject in gameObjects) {
+                if (gameObject) {
+                    Component[] components = gameObject.GetComponents<Component>();
+                }
             }
         }
 
