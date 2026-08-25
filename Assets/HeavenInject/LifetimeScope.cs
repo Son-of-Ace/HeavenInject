@@ -5,7 +5,7 @@ namespace HeavenInject {
     public class LifetimeScope : MonoBehaviour {
         [Header("Settings")]
         [Tooltip("Tells the scope what Lifetime to register AutoRegisterObjects with")]
-        [SerializeField] private LifeTime lt;
+        [SerializeField] private LifeTime autoRegisteredLifeTime;
 
         [Tooltip("Tells the scope what objects to automatically register")]
         [SerializeField] private List<GameObject> autoRegisterObjects;
@@ -15,7 +15,7 @@ namespace HeavenInject {
         protected virtual void Awake() {
             _builder = new ContainerBuilder();
             Bind(_builder);
-            _builder.AutoRegister(autoRegisterObjects, lt);
+            _builder.AutoRegister(autoRegisterObjects, autoRegisteredLifeTime);
             _builder.Build();
         }
 

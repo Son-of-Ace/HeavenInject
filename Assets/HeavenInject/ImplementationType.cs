@@ -1,5 +1,4 @@
 using System;
-using UnityEngine;
 
 namespace HeavenInject {
     public struct ImplementationType {
