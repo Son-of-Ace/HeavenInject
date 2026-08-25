@@ -17,8 +17,8 @@ namespace HeavenInject {
         void RegisterEntryPoint<T>() where T : class;
         void Register<TA, TB>(LifeTime lifeTime) where TB : class;
         void RegisterSceneObject<T>() where T : Component;
-        void RegisterComponentOnNewGameObject<T>(string objectName = "HeavenInjectDefaultObject") where T : Component;
-        void RegisterComponentOnNewPrefab<T>([CanBeNull] string objectName) where T : Component;
+        ContainerBuilder RegisterComponentOnNewGameObject<T>(string objectName = "HeavenInjectDefaultObject") where T : Component;
+        ContainerBuilder RegisterComponentOnNewPrefab<T>([CanBeNull] string objectName) where T : Component;
         void AutoRegister(List<GameObject> gameObjects, LifeTime lt);
 
         // Discard Methods
@@ -30,6 +30,11 @@ namespace HeavenInject {
         
         // Registered Objects
         private Dictionary<Type, ImplementationType> _implementations = new();
+        
+        /// <summary>
+        /// Variables used to store objects for UnderTransform method to work.
+        /// </summary>
+        private GameObject _newObject;
 
         public void Build() {
             _objectResolver = new ObjectResolver(_implementations);
@@ -116,24 +121,26 @@ namespace HeavenInject {
                 HandleSceneObject<T>(gameObject, LifeTime.Scoped);
             }
         }
-
+        
         /// <summary>
-        /// Takes an Implementation and creates a new GameObject in the scene with that a component of Implementation on it
+        /// Takes an Implementation and creates a new GameObject in the scene with a component of the Implementation on it
         /// </summary>
         /// <param name="objectName"></param>
         /// <typeparam name="T"></typeparam>
-        public void RegisterComponentOnNewGameObject<T>(string objectName = "HeavenInjectDefaultName") where T : Component {
-            GameObject newObject = new GameObject(objectName);
-            HandleSceneObject<T>(newObject, LifeTime.Scoped);
+        public ContainerBuilder RegisterComponentOnNewGameObject<T>(string objectName = "HIDefaultObjectName") where T : Component {
+            _newObject = new GameObject(objectName);
+            _newObject.AddComponent<T>();
+            HandleSceneObject<T>(_newObject, LifeTime.Scoped);
+            return this;
         }
 
         /// <summary>
-        /// 
+        /// Takes an Implementation and creates a new Prefab in the scene and project with a component of the Implementation on it 
         /// </summary>
         /// <param name="objectName"></param>
         /// <typeparam name="T"></typeparam>
-        public void RegisterComponentOnNewPrefab<T>(string objectName) where T : Component {
-            
+        public ContainerBuilder RegisterComponentOnNewPrefab<T>(string objectName = "HIDefaultPrefabName") where T : Component {
+            return this;
         }
 
         /// <summary>
@@ -155,7 +162,15 @@ namespace HeavenInject {
                 _implementations.Add(t, implementationType);
             }
         }
-
+        
+        /// <summary>
+        /// Extension Methods
+        /// </summary>
+        public ContainerBuilder UnderTransform(Transform parent) {
+            _newObject.transform.parent = parent;
+            return this;
+        }
+        
         // When a Scene gets disabled or goes out of scope, this method will run to clear the scoped cache
         public void OnScopeDied() {
             _objectResolver.ClearScopedCache();
