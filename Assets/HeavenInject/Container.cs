@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using JetBrains.Annotations;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -8,21 +7,6 @@ namespace HeavenInject {
     public enum LifeTime {
         Scoped,
         Singleton
-    }
-
-    public interface IContainerBuilder {
-        void Build();
-        
-        // Register Methods
-        void RegisterEntryPoint<T>() where T : class;
-        void Register<TA, TB>(LifeTime lifeTime) where TB : class;
-        void RegisterSceneObject<T>() where T : Component;
-        ContainerBuilder RegisterComponentOnNewGameObject<T>(string objectName = "HeavenInjectDefaultObject") where T : Component;
-        ContainerBuilder RegisterComponentOnNewPrefab<T>([CanBeNull] string objectName) where T : Component;
-        void AutoRegister(List<GameObject> gameObjects, LifeTime lt);
-
-        // Discard Methods
-        void OnScopeDied();
     }
 
     public class ContainerBuilder : IContainerBuilder {
@@ -164,14 +148,16 @@ namespace HeavenInject {
         }
         
         /// <summary>
-        /// Extension Methods
+        /// Chain Methods
         /// </summary>
         public ContainerBuilder UnderTransform(Transform parent) {
             _newObject.transform.parent = parent;
             return this;
         }
         
-        // When a Scene gets disabled or goes out of scope, this method will run to clear the scoped cache
+        /// <summary>
+        /// When a Scene gets disabled or goes out of scope, this method will run to clear the scoped cache
+        /// </summary>
         public void OnScopeDied() {
             _objectResolver.ClearScopedCache();
         }

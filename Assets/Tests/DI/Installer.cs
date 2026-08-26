@@ -7,6 +7,6 @@ public class Installer : LifetimeScope {
     protected override void Bind(IContainerBuilder builder) {
         builder.Register<ISceneLoader, SceneLoader>(LifeTime.Singleton);
         //builder.RegisterComponentOnNewGameObject<MonoTest>("TestSceneObject").UnderTransform(parent);
-        builder.RegisterComponentOnNewPrefab<MonoTest>("NewPrefab").UnderTransform(parent);
+        //builder.RegisterComponentOnNewPrefab<MonoTest>("NewPrefab").UnderTransform(parent);
     }
 }
