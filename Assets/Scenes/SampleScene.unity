@@ -497,7 +497,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Installer
   autoRegisteredLifeTime: 0
   autoRegisterObjects: []
-  parent: {fileID: 930531131}
+  _parent: {fileID: 930531131}
 --- !u!4 &1702039519
 Transform:
   m_ObjectHideFlags: 0

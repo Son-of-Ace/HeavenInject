@@ -10,8 +10,8 @@ namespace HeavenInject {
         void RegisterEntryPoint<T>() where T : class;
         void Register<TA, TB>(LifeTime lifeTime) where TB : class;
         void RegisterSceneObject<T>() where T : Component;
-        ContainerBuilder RegisterComponentOnNewGameObject<T>(string objectName = "HIDefaultObject") where T : Component;
-        ContainerBuilder RegisterComponentOnNewPrefab<T>([CanBeNull] string objectName) where T : Component;
+        ObjectRegistration RegisterComponentOnNewGameObject<T>(string objectName = "HIDefaultObject") where T : Component;
+        ObjectRegistration RegisterComponentOnNewPrefab<T>(GameObject prefab) where T : Component;
         void AutoRegister(List<GameObject> gameObjects, LifeTime lt);
 
         // Discard Methods

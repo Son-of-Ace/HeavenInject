@@ -14,15 +14,9 @@ namespace HeavenInject {
         
         // Registered Objects
         private Dictionary<Type, ImplementationType> _implementations = new();
-        
-        /// <summary>
-        /// Variables used to store objects for UnderTransform method to work.
-        /// </summary>
-        private GameObject _newObject;
 
         public void Build() {
             _objectResolver = new ObjectResolver(_implementations);
-            
             Initialize();
         }
 
@@ -111,20 +105,22 @@ namespace HeavenInject {
         /// </summary>
         /// <param name="objectName"></param>
         /// <typeparam name="T"></typeparam>
-        public ContainerBuilder RegisterComponentOnNewGameObject<T>(string objectName = "HIDefaultObjectName") where T : Component {
-            _newObject = new GameObject(objectName);
-            _newObject.AddComponent<T>();
-            HandleSceneObject<T>(_newObject, LifeTime.Scoped);
-            return this;
+        public ObjectRegistration RegisterComponentOnNewGameObject<T>(string objectName = "HIDefaultObjectName") where T : Component {
+            GameObject newObject = new GameObject(objectName);
+            newObject.AddComponent<T>();
+            HandleSceneObject<T>(newObject, LifeTime.Scoped);
+            return new ObjectRegistration(newObject, this);
         }
 
         /// <summary>
         /// Takes an Implementation and creates a new Prefab in the scene and project with a component of the Implementation on it 
         /// </summary>
-        /// <param name="objectName"></param>
+        /// <param name="prefab"></param>
         /// <typeparam name="T"></typeparam>
-        public ContainerBuilder RegisterComponentOnNewPrefab<T>(string objectName = "HIDefaultPrefabName") where T : Component {
-            return this;
+        public ObjectRegistration RegisterComponentOnNewPrefab<T>(GameObject prefab) where T : Component {
+            GameObject newObject = Object.Instantiate(prefab);
+            HandleSceneObject<T>(newObject, LifeTime.Scoped);
+            return new ObjectRegistration(newObject, this);
         }
 
         /// <summary>
@@ -145,14 +141,6 @@ namespace HeavenInject {
             
                 _implementations.Add(t, implementationType);
             }
-        }
-        
-        /// <summary>
-        /// Chain Methods
-        /// </summary>
-        public ContainerBuilder UnderTransform(Transform parent) {
-            _newObject.transform.parent = parent;
-            return this;
         }
         
         /// <summary>
