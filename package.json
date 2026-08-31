@@ -1,0 +1,7 @@
+{
+  "name": "com.sonoface.heaveninject",
+  "version": "1.0.0",
+  "displayName": "Heaven Inject",
+  "description": "HeavenInject is a Dependency Injection framework for Unity.",
+  "unity": "6000.0f"
+}
