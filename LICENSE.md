@@ -1,3 +1,5 @@
+MIT License
+
 Copyright (c) 2026 Son of Ace
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
