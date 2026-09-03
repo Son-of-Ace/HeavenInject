@@ -44,7 +44,7 @@ namespace HeavenInject {
                 MethodInfo[] methods = implementation.GetMethods(flags);
                 foreach (MethodInfo method in methods) {
                     // Check if the Method has an Attribute of type Inject
-                    if (!method.IsDefined(typeof(Inject), false)) return null;
+                    if (!method.IsDefined(typeof(Inject), false)) continue;
                     
                     // Get all parameters out of the found Method
                     ParameterInfo[] pi = method.GetParameters();
@@ -56,7 +56,8 @@ namespace HeavenInject {
                     }
                     
                     // Invokes the Method on the Component found in the scene from RegisterSceneObject with the Resolved args
-                    return method.Invoke(implType.SceneObject, args.ToArray());
+                    method.Invoke(implType.SceneObject, args.ToArray());
+                    return implType.SceneObject;
                 }
             }
             else {
